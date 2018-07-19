@@ -4,13 +4,13 @@ Iwillbia /pronounced [aɪ'wɪlbɪa]/ derived from "I will be", means absolutely 
 "Notepady"-looking platformer game involving jumping over the words from the top of any text file in order to reach its end, as well as collecting coins, avoiding the bad guys and trasforming into words of that file.
 ![Alt Text](https://media.giphy.com/media/clskiCrKMRob9G9bsM/giphy.gif)
 
-There is a lot of work ahead to make such visual representation of all the words in the world. Currently there are just a few, including that sheriff :D
+There is a lot of work ahead to make such visual representations of all the words in the world. Currently there are just a few, including that sheriff above :D
 
 ## Detailed game description
 *Coming soon*
 
 ## Answering "why" questions
-##### Why it resembles a standard windowed application and not a game with cool visual effects etc?
+##### Why it resembles a standard windowed application and not a game with cool visual effects?
   - That was exactly my idea of the game’s UI, so that it looks like a text editor.
 ##### Why is it written in Python and why exactly version 2.7?
   - The game started as a prototype and Python, in my opinion, is a good choice for prototyping. I then prototyped further, having no straight goal/idea about what the game is going to become, and when a playable prototype was finished I had no desire to rewrite it in other programming language.
