@@ -7,7 +7,8 @@ Iwillbia /pronounced [aɪ'wɪlbɪa]/ derived from "I will be", means absolutely 
 There is a lot of work ahead to make such visual representations of all the words in the world. Currently there are just a few, including that sheriff above :D
 
 ## Detailed game description
-*Coming soon*
+Iwillbia automatically starts in totorial mode, which provides a player with the basic understanding of game mechanics.
+*Detailed description coming soon*
 
 ## Answering "why" questions
 ##### Why it resembles a standard windowed application and not a game with cool visual effects?
@@ -23,7 +24,7 @@ There is a lot of work ahead to make such visual representations of all the word
   - I like desktop apps more. This is my personal old-fashioned preference.
   - Someone would certainly get suspicious about the algorithm of uploading files (the ones that are used for the game) to the server: maybe I store them somewhere and run some kind of AI stuff upon them in order to gather sensitive information about players :D
   
-## Contribution 1
+## Contribution #1
 I would be glad if someone would help the project with:
 - Creating new game content (*TODO: link to wiki*)
 - Ideas of further game concepts that I might have not even thought of (*TODO: link to wiki*)
@@ -33,7 +34,7 @@ I would be glad if someone would help the project with:
 - Wiki pages
 - Code refactoring: some pieces of code are real monstrosities, a lot of "TODO" comments here and there
 
-## Contribution 2:
+## Contribution #2:
 I cannot think of how the following would work, however this is urgently required, thus I encourage anyone to throw ideas into Wiki discussion
 - Multi-user delivery of new content to database (sequences of primary key ids would be broken if everyone is simply pushing SQL INSERT statements)
 
