@@ -60,39 +60,52 @@ class EditorMainDialog(tk.Toplevel):
     def click_sql(self):
         sql_statement_list = []
 
-        # words
+        # words and word_lines_map
+        word_list = self.word_editor_panel.header.word_panel.get_value().split(",")
         word_id = predict_next_value("words", "id", self.db_connection)
-        words_insert = SqlInsertStatement("words", (
-            ColumnTypeValue("id", COL_TYPE_NUMBER, word_id),
-            ColumnTypeValue("name", COL_TYPE_CHAR, self.word_editor_panel.header.word_panel.get_value().lower()),
-            ColumnTypeValue("language_id", COL_TYPE_NUMBER, self.word_editor_panel.header.language_panel.get_value()),
-            ColumnTypeValue("immediate_changes_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.header.immediate_changes.get_value()),
-            ColumnTypeValue("command_1_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_1.get_value()),
-            ColumnTypeValue("command_2_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_2.get_value()),
-            ColumnTypeValue("command_3_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_3.get_value()),
-            ColumnTypeValue("command_4_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_4.get_value()),
-            ColumnTypeValue("command_5_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_5.get_value()),
-            ColumnTypeValue("command_6_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_6.get_value()),
-            ColumnTypeValue("command_7_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_7.get_value()),
-            ColumnTypeValue("command_8_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_8.get_value()),
-            ColumnTypeValue("command_9_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_9.get_value()),
-            ColumnTypeValue("command_0_action_id", COL_TYPE_NUMBER,
-                            self.word_editor_panel.details.actions_panel.action_0.get_value())))
-        sql_statement_list.append(words_insert)
+        lines_word_map_id = predict_next_value("lines", "word_map_id", self.db_connection)
+
+        for word in word_list:
+            # word
+            words_insert = SqlInsertStatement("words", (
+                ColumnTypeValue("id", COL_TYPE_NUMBER, word_id),
+                ColumnTypeValue("name", COL_TYPE_CHAR, word.lower().strip()),
+                ColumnTypeValue("language_id", COL_TYPE_NUMBER, self.word_editor_panel.header.language_panel.get_value()),
+                ColumnTypeValue("immediate_changes_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.header.immediate_changes.get_value()),
+                ColumnTypeValue("command_1_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_1.get_value()),
+                ColumnTypeValue("command_2_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_2.get_value()),
+                ColumnTypeValue("command_3_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_3.get_value()),
+                ColumnTypeValue("command_4_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_4.get_value()),
+                ColumnTypeValue("command_5_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_5.get_value()),
+                ColumnTypeValue("command_6_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_6.get_value()),
+                ColumnTypeValue("command_7_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_7.get_value()),
+                ColumnTypeValue("command_8_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_8.get_value()),
+                ColumnTypeValue("command_9_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_9.get_value()),
+                ColumnTypeValue("command_0_action_id", COL_TYPE_NUMBER,
+                                self.word_editor_panel.details.actions_panel.action_0.get_value())))
+            sql_statement_list.append(words_insert)
+
+            # word_lines_map
+            word_lines_map_insert = SqlInsertStatement("word_lines_map", (
+                ColumnTypeValue("word_id", COL_TYPE_NUMBER, word_id),
+                ColumnTypeValue("lines_id", COL_TYPE_NUMBER, lines_word_map_id)
+            ))
+            sql_statement_list.append(word_lines_map_insert)
+
+            word_id += 1
 
         # lines
         line_id = predict_next_value("lines", "id", self.db_connection) - 1
-        lines_word_map_id = predict_next_value("lines", "word_map_id", self.db_connection)
         right_lines = self.word_editor_panel.details.lines_panel.right_looking_lines.text_area.get("1.0", tk.END)\
             .split("\n")
         left_lines = self.word_editor_panel.details.lines_panel.left_looking_lines.text_area.get("1.0", tk.END)\
@@ -105,14 +118,18 @@ class EditorMainDialog(tk.Toplevel):
         # TODO: needs refactoring
         right_line_bullet_pairs = {}
         right_shoot_string = self.word_editor_panel.details.lines_panel.right_looking_lines.shooting_lines_numbers.get()
-        for right_line_bullet_string in right_shoot_string.replace(" ", "").split(";"):
-            right_linestr_bullet = right_line_bullet_string.split(":")
-            right_line_bullet_pairs[int(right_linestr_bullet[0])] = right_linestr_bullet[1]
+        if right_shoot_string:
+            for right_line_bullet_string in right_shoot_string.replace(" ", "").split(","):
+                right_linestr_bullet = right_line_bullet_string.split(":")
+                if len(right_linestr_bullet) == 2:
+                    right_line_bullet_pairs[int(right_linestr_bullet[0])] = right_linestr_bullet[1]
         left_line_bullet_pairs = {}
         left_shoot_string = self.word_editor_panel.details.lines_panel.left_looking_lines.shooting_lines_numbers.get()
-        for left_line_bullet_string in left_shoot_string.replace(" ", "").split(";"):
-            left_linestr_bullet = left_line_bullet_string.split(":")
-            left_line_bullet_pairs[int(left_linestr_bullet[0])] = left_linestr_bullet[1]
+        if left_shoot_string:
+            for left_line_bullet_string in left_shoot_string.replace(" ", "").split(";"):
+                left_linestr_bullet = left_line_bullet_string.split(":")
+                if len(left_linestr_bullet) == 2:
+                    left_line_bullet_pairs[int(left_linestr_bullet[0])] = left_linestr_bullet[1]
 
         for line_num in range(0, len(lines_to_iterate) - 1):
             line_id += 1
@@ -120,10 +137,10 @@ class EditorMainDialog(tk.Toplevel):
             left_line_text_only = left_lines[line_num].lstrip().rstrip()
             right_x_offset = len(right_lines[line_num]) - len(right_line_text_only)
             left_x_offset = len(left_lines[line_num]) - len(left_line_text_only)
-            right_bullet_id = None
+            right_bullet_id = 0
             if (line_num + 1) in right_line_bullet_pairs:
                 right_bullet_id = right_line_bullet_pairs[line_num + 1]
-            left_bullet_id = None
+            left_bullet_id = 0
             if (line_num + 1) in left_line_bullet_pairs:
                 left_bullet_id = left_line_bullet_pairs[line_num + 1]
             lines_insert = SqlInsertStatement("lines", (
@@ -138,12 +155,5 @@ class EditorMainDialog(tk.Toplevel):
                 ColumnTypeValue("y_offset", COL_TYPE_NUMBER, line_num)
             ))
             sql_statement_list.append(lines_insert)
-
-        # word_lines_map
-        word_lines_map_insert = SqlInsertStatement("word_lines_map", (
-            ColumnTypeValue("word_id", COL_TYPE_NUMBER, word_id),
-            ColumnTypeValue("lines_id", COL_TYPE_NUMBER, lines_word_map_id)
-        ))
-        sql_statement_list.append(word_lines_map_insert)
 
         SqlDialog(self, sql_statement_list)

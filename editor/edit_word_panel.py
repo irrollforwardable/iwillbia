@@ -81,7 +81,7 @@ class Header(tk.Frame):
         self.parent = parent
 
         # GUI elements
-        self.word_panel = LabeledEntry(self, "Word: ")
+        self.word_panel = LabeledEntry(self, "Word(-s) (comma-separated): ")
         self.word_panel.pack(side=tk.LEFT, padx=10)
 
         self.language_panel = LabeledEntry(self, "Language ID: ", is_right_justify=True)
@@ -232,7 +232,7 @@ class LinesSide(tk.Frame):
 
         shooting_lines_panel = tk.Frame(self)
         shooting_lines_panel.pack(fill=tk.BOTH, padx=5)
-        word_label = tk.Label(shooting_lines_panel, text="Line number - bullet id pairs (i.e. 2:6;3:8): ")
+        word_label = tk.Label(shooting_lines_panel, text="Line number - bullet id pairs (i.e. 2:6, 3:8): ")
         word_label.pack(side=tk.LEFT)
         self.shooting_lines_numbers = tk.Entry(shooting_lines_panel)
         self.shooting_lines_numbers.pack(side=tk.LEFT)
