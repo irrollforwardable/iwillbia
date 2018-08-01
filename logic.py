@@ -311,6 +311,7 @@ class GameObject(object):
         self.initial_directional_lines = directional_lines  # object's initial appearance
         self.blinking = Blink(self)
         self.inventory = []
+        self.widths = self._generate_widths_list()
 
         # Keep initial values
         self.initial_health = initial_health
@@ -501,8 +502,12 @@ class GameObject(object):
             return
 
         if changes.is_health_change_value_absolute:
+            if changes.health_change < self.health:
+                self.start_blinking(3, BLINK_HURT)
             self.health = changes.health_change
         else:
+            if changes.health_change < 0:
+                self.start_blinking(3, BLINK_HURT)
             self.health += changes.health_change
 
         if changes.is_x_energy_change_value_absolute:
@@ -587,6 +592,8 @@ class GameObject(object):
 
             self.is_transformed = False
 
+        self.widths = self._generate_widths_list()
+
         # For player only - construct list of action_number - action_title somewhere in GUI.
         # FYI: In my opinion, a better solution than loop through construct_actions_list every frame update
         if isinstance(self, Player):
@@ -626,6 +633,20 @@ class GameObject(object):
             line.directional_line.texts[LEFT] = left_text
             line.directional_line.texts[RIGHT] = right_text
 
+    def explode(self, radius=5, subject_changes=None, is_transform_to_initial_state=True):
+        """
+        Make explosion with itself in the epicenter.
+        :param radius: explosion wave radius
+        :param subject_changes: changes to be applied to GameObjects that are contacted by explosion wave
+        :param is_transform_to_initial_state: if True, transform back to initial state
+        """
+        self.gameplay.explosions.append(Explosion(gameplay=self.gameplay, x=self.x, y=self.y,
+                                                  epicenter_width=self.widths[self.direction],
+                                                  epicenter_height=len(self.lines), radius=radius,
+                                                  subject_changes=subject_changes))
+        if is_transform_to_initial_state:
+            self.transform()
+
     def become_visible(self):
         """
         Make object visible - set texts of directional lines as original texts
@@ -656,6 +677,8 @@ class GameObject(object):
             self.gameplay.words.remove(self)
         elif isinstance(self, Platform):
             self.gameplay.platforms.remove(self)
+        elif isinstance(self, Explosion):
+            self.gameplay.explosions.remove(self)
 
     def execute_action_by_command_number(self, action_number):
         """
@@ -718,23 +741,35 @@ class GameObject(object):
             if is_player:
                 self.update_gui_inventory_info()
 
+    def append_new_line(self, directional_line):
+        """
+        Create new ObjectLine from provided DirectionalLine and append it to GameObject list of lines.
+        :param directional_line: DirectionalLine
+        """
+        self.lines.append(ObjectLine(self, directional_line))
+
     def _create_object_lines(self, directional_lines):
         result = []
         for directional_line in directional_lines:
             result.append(ObjectLine(self, directional_line))
         return result
 
+    def _generate_widths_list(self):
+        return [get_max_length(self.lines, LEFT), get_max_length(self.lines, RIGHT)]
+
     def _handle_touched_object(self, touched_object):
         """
         Actions upon collision between two game objects depending on their types
         :param touched_object: the object that is touched by this game object
         """
+        # TODO the whole collision handling method needs refactoring
         if isinstance(touched_object, Bullet):
             # This ensures that GameObject cannot hurt itself with its own bullet (when shooting line X is "deep")
             if not touched_object.shooter == self:
                 self.apply_changes(touched_object.subject_changes)
-                self.start_blinking(3, BLINK_HURT)
                 touched_object.put_back_into_pool()
+        elif isinstance(touched_object, Explosion):
+            self.apply_changes(touched_object.subject_changes)
         elif isinstance(touched_object, Enemy):
             if touched_object not in self.touching_enemies:
                 self.touching_enemies.append(touched_object)
@@ -743,7 +778,6 @@ class GameObject(object):
             subject_changes = self.execute_action_by_command_number(self.get_action_number_by_title("Bite"))
             if subject_changes:
                 touched_object.apply_changes(subject_changes)
-                touched_object.start_blinking(3, BLINK_HURT)
         elif isinstance(touched_object, Coin) and isinstance(self, Player):
             touched_object.grant_price_to_object(self)
             touched_object.delete()
@@ -848,6 +882,100 @@ class Platform(GameObject):
                     self.direction = RIGHT
 
 
+class Explosion(GameObject):
+    """
+    Wave released from epicenter and applying changes (either destructive or not) to all objects that it touches.
+    """
+    def __init__(self, gameplay, x, y, epicenter_width, epicenter_height, radius, subject_changes,
+                 horizontal_char="-", vertical_char="|"):
+        """
+         ------r------
+        | -----a----- |
+        ||.----d---- ||
+        |||  safe   |||
+        |||epicenter|||
+        ||'---------'||
+        |'-----------'|
+        '-------------'
+        :param x: safe epicenter top left X coordinate
+        :param y: safe epicenter top left Y coordinate
+        :param epicenter_width: width of safe epicenter (area in the center in which no harm is done)
+        :param epicenter_height: height of safe epicenter (area in the center in which no harm is done)
+        :param radius: how far should explosion go away from its safe epicenter
+        :param subject_changes: changes to be applied to GameObjects that are touched by the wave
+        :param horizontal_char: single character representing horizontal wave
+        :param vertical_char: single character representing vertical wave
+        """
+        super(Explosion, self).__init__(
+            gameplay,
+            (
+                DirectionalLine(horizontal_char * (epicenter_width - 2),  # TODO Fail if epicenter_width < 2
+                                1,
+                                horizontal_char * (epicenter_width - 2),
+                                1,
+                                0),
+                DirectionalLine(horizontal_char * (epicenter_width - 2),
+                                1,
+                                horizontal_char * (epicenter_width - 2),
+                                1,
+                                epicenter_height),
+            ),
+            x,
+            y)
+
+        # Add vertical wave lines
+        for vl_y in range(1, epicenter_height + 1):
+            self.append_new_line(DirectionalLine(vertical_char, -1, vertical_char, epicenter_width, vl_y))
+            self.append_new_line(DirectionalLine(vertical_char, epicenter_width, vertical_char, -1, vl_y))
+
+        self.x = x
+        self.y = y
+        self.epicenter_width = epicenter_width
+        self.epicenter_height = epicenter_height
+        self.radius = radius
+        self.subject_changes = subject_changes
+        self.current_radius = 0
+        self.horizontal_char = horizontal_char
+        self.vertical_char = vertical_char
+
+    def update_state(self):
+        if self.current_radius < self.radius:
+
+            # Top horizontal line
+            self.lines[0].directional_line.texts[0] += (self.horizontal_char * 2)
+            self.lines[0].directional_line.texts[1] += (self.horizontal_char * 2)
+            self.lines[0].set_x_no_collision_detection(self.lines[0].x - 2)
+            self.lines[0].set_y_no_collision_detection(self.lines[0].y - 1)
+
+            # Add one more pair of vertical line segments to the top
+            self.append_new_line(DirectionalLine(self.vertical_char, -1, self.vertical_char, self.epicenter_width,
+                                                 -self.current_radius))
+            self.append_new_line(DirectionalLine(self.vertical_char, self.epicenter_width, self.vertical_char,
+                                                 -1, -self.current_radius))
+
+            # Bottom horizontal line
+            self.lines[1].directional_line.texts[0] += (self.horizontal_char * 2)
+            self.lines[1].directional_line.texts[1] += (self.horizontal_char * 2)
+            self.lines[1].set_x_no_collision_detection(self.lines[1].x - 2)
+            self.lines[1].set_y_no_collision_detection(self.y + self.current_radius)
+
+            # Add one more pair of vertical line segments to the bottom
+            self.append_new_line(DirectionalLine(self.vertical_char, -1, self.vertical_char, self.epicenter_width,
+                                                 self.current_radius + self.epicenter_height - 1))
+            self.append_new_line(DirectionalLine(self.vertical_char, self.epicenter_width, self.vertical_char,
+                                                 -1, self.current_radius + self.epicenter_height - 1))
+
+            for line_id in range(2, len(self.lines)):
+                if line_id % 2 == 0:
+                    self.lines[line_id].set_x_no_collision_detection(self.x + self.current_radius)
+                else:
+                    self.lines[line_id].set_x_no_collision_detection(self.x - self.current_radius)
+
+            self.current_radius += 1
+        else:
+            self.delete()
+
+
 class Meaning(object):
     """
     Contains information about the meaning of the word: it's visual representation and all its parameters
@@ -947,6 +1075,7 @@ class Gameplay(object):
         self.enemies = None
         self.words = None
         self.platforms = None
+        self.explosions = None
         self.bottom = None
         self.dummy_bottom_platform = None  # Platform to be returned by ObjectLine when hitting the bottom of the game
         self.dummy_top_platform = None  # Platform to be returned by ObjectLine when hitting the top of the game space
@@ -1106,6 +1235,9 @@ class Gameplay(object):
         for coin in self.coins:
             coin.update_state()
 
+        for explosion in self.explosions:
+            explosion.update_state()
+
         for bullet in self.bullets_pool:
             if not bullet.is_available:  # This means "not available in pool", thus currently active in the game
                 bullet.update()
@@ -1197,6 +1329,7 @@ class GameBuilder(object):
         self.gameplay.enemies = []
         self.gameplay.words = []
         self.gameplay.platforms = []
+        self.gameplay.explosions = []
 
         # Top indentation before start-platform
         # TODO check whether player height + jump fits here
@@ -1345,6 +1478,7 @@ class Tutorial1(Gameplay):
 
         self.coins = []
         self.enemies = []
+        self.explosions = []
         self.words = [
             Word(self, "Welcome to " + APP_NAME + "!", 1, x=12, y=0),
             Word(self, "Let us walk you through the basics of this game:", 1, x=0, y=1),
@@ -1434,6 +1568,7 @@ class Tutorial2(Gameplay):
         self.width = 57
 
         self.coins = []
+        self.explosions = []
 
         enemy = Enemy(self,
                       (
