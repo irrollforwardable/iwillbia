@@ -35,10 +35,11 @@ class Action(object):
         self.self_changes = Changes()
         self.subject_changes = Changes()
         self.execute = None
+        self.function_id = -1
         cursor = db_connection.cursor()
 
         # Action header info
-        cursor.execute("select a.title, lower(f.name) " +
+        cursor.execute("select a.title, a.function_id, lower(f.name) " +
                        "from actions a, functions f " +
                        "where a.function_id = f.id and a.id = ?",
                        (db_pk_id,))
@@ -46,48 +47,29 @@ class Action(object):
 
         if db_rows:
             self.title = db_rows[0][0]
-            self.execute = getattr(functions, db_rows[0][1])
+            self.function_id = db_rows[0][1]
+            self.execute = getattr(functions, db_rows[0][2])
 
-        # Self changes
-        cursor.execute("select ch.health, ch.is_health_absolute, ch.x_energy, ch.is_x_energy_absolute, " +
-                       "ch.y_energy, ch.is_y_energy_absolute, ch.jump_power, ch.is_jump_power_absolute, " +
-                       "ch.capacity, ch.is_capacity_absolute, ch.bullets, ch.is_bullets_absolute, " +
-                       "ch.coins, ch.is_coins_absolute " +
-                       "from actions a, changes ch " +
-                       "where a.id = ? " +
-                       "and a.self_changes_id = ch.id ", (db_pk_id,))
+        # Self changes and Subject changes
+        cursor.execute("select a.self_changes_id, a.subject_changes_id " +
+                       "from actions a " +
+                       "where a.id = ? ", (db_pk_id,))
         db_rows = cursor.fetchall()
 
         if db_rows:
-            self.self_changes.set_all_fields(db_rows[0][0], db_rows[0][1], db_rows[0][2], db_rows[0][3], db_rows[0][4],
-                                             db_rows[0][5], db_rows[0][6], db_rows[0][7], db_rows[0][8], db_rows[0][9],
-                                             db_rows[0][10], db_rows[0][11], db_rows[0][12], db_rows[0][13])
-
-        # Subject changes
-        cursor.execute("select ch.health, ch.is_health_absolute, ch.x_energy, ch.is_x_energy_absolute, " +
-                       "ch.y_energy, ch.is_y_energy_absolute, ch.jump_power, ch.is_jump_power_absolute, " +
-                       "ch.capacity, ch.is_capacity_absolute, ch.bullets, ch.is_bullets_absolute, " +
-                       "ch.coins, ch.is_coins_absolute " +
-                       "from actions a, changes ch " +
-                       "where a.id = ? " +
-                       "and a.subject_changes_id = ch.id ", (db_pk_id,))
-        db_rows = cursor.fetchall()
-
-        if db_rows:
-            self.subject_changes.set_all_fields(db_rows[0][0], db_rows[0][1], db_rows[0][2], db_rows[0][3],
-                                                db_rows[0][4], db_rows[0][5], db_rows[0][6], db_rows[0][7],
-                                                db_rows[0][8], db_rows[0][9], db_rows[0][10], db_rows[0][11],
-                                                db_rows[0][12], db_rows[0][13])
+            self.self_changes.set_all_fields_from_db(db_connection, change_pk_id=db_rows[0][0])
+            self.subject_changes.set_all_fields_from_db(db_connection, change_pk_id=db_rows[0][1])
 
     def __repr__(self):
-        return self.db_id
+        return self.title
 
 
 class Changes(object):
     """
     List of changes to attributes of a game object. Contained by word meaning.
     """
-    def __init__(self, health_change=0, is_health_change_value_absolute=False,
+    def __init__(self, description=None,
+                 health_change=0, is_health_change_value_absolute=False,
                  x_energy_change=0, is_x_energy_change_value_absolute=False,
                  y_energy_change=0, is_y_energy_change_value_absolute=False,
                  jump_power_change=0, is_jump_power_change_value_absolute=False,
@@ -97,6 +79,9 @@ class Changes(object):
         # Absolute value means existing value would be overwritten by this value. Non-absolute value means that existing
         # value would be increased by this value.
         # TODO value + is_absolute should be united into a class
+        self.db_id = -1
+        self.description = description
+
         self.health_change = health_change
         self.is_health_change_value_absolute = is_health_change_value_absolute
         self.x_energy_change = x_energy_change
@@ -112,7 +97,8 @@ class Changes(object):
         self.coins_change = coins_change
         self.is_coins_change_value_absolute = is_coins_change_value_absolute
 
-    def set_all_fields(self, health_change=0, is_health_change_value_absolute=False,
+    def set_all_fields(self, description=None,
+                       health_change=0, is_health_change_value_absolute=False,
                        x_energy_change=0, is_x_energy_change_value_absolute=False,
                        y_energy_change=0, is_y_energy_change_value_absolute=False,
                        jump_power_change=0, is_jump_power_change_value_absolute=False,
@@ -125,6 +111,7 @@ class Changes(object):
         # Absolute value means existing value would be overwritten by this value. Non-absolute value means that existing
         # value would be increased by this value.
         # TODO value + is_absolute should be united into a class
+        self.description = description
         self.health_change = health_change
         self.is_health_change_value_absolute = is_health_change_value_absolute
         self.x_energy_change = x_energy_change
@@ -139,6 +126,44 @@ class Changes(object):
         self.is_bullets_change_value_absolute = is_bullets_change_value_absolute
         self.coins_change = coins_change
         self.is_coins_change_value_absolute = is_coins_change_value_absolute
+
+    def set_all_fields_from_db(self, db_connection, change_pk_id):
+        """
+        Set values of Changes object from database.
+        :param db_connection: database connection
+        :param change_pk_id: change id in the database
+        """
+        cursor = db_connection.cursor()
+
+        # Action header info
+        cursor.execute("select ch.health, ch.is_health_absolute, ch.x_energy, ch.is_x_energy_absolute, " +
+                       "ch.y_energy, ch.is_y_energy_absolute, ch.jump_power, ch.is_jump_power_absolute, " +
+                       "ch.capacity, ch.is_capacity_absolute, ch.bullets, ch.is_bullets_absolute, " +
+                       "ch.coins, ch.is_coins_absolute, ch.id, ch.comments " +
+                       "from changes ch " +
+                       "where ch.id = ?",
+                       (change_pk_id,))
+        db_rows = cursor.fetchall()
+
+        if db_rows:
+            self.db_id = db_rows[0][14]
+            self.set_all_fields(
+                description=db_rows[0][15],
+                health_change=db_rows[0][0],
+                is_health_change_value_absolute=db_rows[0][1],
+                x_energy_change=db_rows[0][2],
+                is_x_energy_change_value_absolute=db_rows[0][3],
+                y_energy_change=db_rows[0][4],
+                is_y_energy_change_value_absolute=db_rows[0][5],
+                jump_power_change=db_rows[0][6],
+                is_jump_power_change_value_absolute=db_rows[0][7],
+                capacity_change=db_rows[0][8],
+                is_capacity_change_value_absolute=db_rows[0][9],
+                bullets_change=db_rows[0][10],
+                is_bullets_change_value_absolute=db_rows[0][11],
+                coins_change=db_rows[0][12],
+                is_coins_change_value_absolute=db_rows[0][13]
+            )
 
     def can_apply_health_change_to_object(self, game_object):
         return ((not self.is_health_change_value_absolute and game_object.health + self.health_change >= 0)
@@ -170,6 +195,38 @@ class Changes(object):
                 or (self.is_coins_change_value_absolute and self.coins_change >= 0))
 
     def __repr__(self):
-        return str(self.health_change) + "_" + str(self.x_energy_change) + "_" + str(self.y_energy_change) + "_" + str(
-            self.jump_power_change) + "_" + str(self.capacity_change) + "_" + str(self.bullets_change) + "_" + str(
-            self.coins_change)
+        empty = ""
+        absolute = "a"
+
+        health_absolute = empty
+        if self.is_health_change_value_absolute:
+            health_absolute = absolute
+
+        x_absolute = empty
+        if self.is_x_energy_change_value_absolute:
+            x_absolute = absolute
+
+        y_absolute = empty
+        if self.is_y_energy_change_value_absolute:
+            y_absolute = absolute
+
+        jump_absolute = empty
+        if self.is_jump_power_change_value_absolute:
+            jump_absolute = absolute
+
+        capacity_absolute = empty
+        if self.is_capacity_change_value_absolute:
+            capacity_absolute = absolute
+
+        bullet_absolute = empty
+        if self.is_bullets_change_value_absolute:
+            bullet_absolute = absolute
+
+        coins_absolute = empty
+        if self.is_coins_change_value_absolute:
+            coins_absolute = absolute
+
+        return ("h" + str(self.health_change) + health_absolute + "_x" + str(self.x_energy_change) + x_absolute +
+                "_y" + str(self.y_energy_change) + y_absolute + "_j" + str(self.jump_power_change) + jump_absolute +
+                "_c" + str(self.capacity_change) + capacity_absolute + "_b" + str(self.bullets_change) +
+                bullet_absolute + "_$" + str(self.coins_change) + coins_absolute)

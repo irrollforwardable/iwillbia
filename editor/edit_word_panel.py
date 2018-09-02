@@ -19,6 +19,16 @@
 from editor_dialogs import *
 
 
+def get_language_id_dictionary(db_connection):
+    result = {}
+    cursor = db_connection.cursor()
+    cursor.execute("select id, name from languages")
+    db_rows = cursor.fetchall()
+    for row in db_rows:
+        result[row[1]] = row[0]
+    return result
+
+
 def reverse_string_correctly(string):
     """
     Reverse provided string in the opposite direction, also handling symbols like > and /
@@ -84,17 +94,13 @@ class Header(tk.Frame):
         self.word_panel = LabeledEntry(self, "Word(-s) (comma-separated): ")
         self.word_panel.pack(side=tk.LEFT, padx=10)
 
-        self.language_panel = LabeledEntry(self, "Language ID: ", is_right_justify=True)
+        self.language_panel = OptionEntry(self, get_language_id_dictionary(db_connection), "Language: ")
         self.language_panel.pack(side=tk.LEFT, padx=10)
 
-        # Hiding more advanced approach for the future :)
-        # self.immediate_changes = BrowseEntry(self, "Immediate changes: ",
-        #                                      lambda: ChangeEditorDialog(self, db_connection, self.immediate_changes,
-        #                                                                 None))
-        # self.immediate_changes.pack(side=tk.LEFT, padx=10)
-
-        self.immediate_changes = LabeledEntry(self, "Immediate change ID: ", is_right_justify=True,
-                                              command=lambda: None)
+        self.immediate_changes = BrowseEntry(self, "Immediate changes: ",
+                                             command=lambda: ChangeEditorDialog(self, db_connection,
+                                                                                self.immediate_changes,
+                                                                                self.immediate_changes.get_kept_id()))
         self.immediate_changes.pack(side=tk.LEFT, padx=10)
 
     def show_immediate_change_editor_dialog(self):
@@ -128,57 +134,45 @@ class Actions(tk.Frame):
     def __init__(self, parent, db_connection):
         tk.Frame.__init__(self, parent)
 
-        # Hiding more advanced approach for the future :)
-        # self.action_1 = BrowseEntry(self, "Action 1: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_1, None))
-        # self.action_1.pack(padx=10)
-        # self.action_2 = BrowseEntry(self, "Action 2: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_2, None))
-        # self.action_2.pack(padx=10)
-        # self.action_3 = BrowseEntry(self, "Action 3: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_3, None))
-        # self.action_3.pack(padx=10)
-        # self.action_4 = BrowseEntry(self, "Action 4: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_4, None))
-        # self.action_4.pack(padx=10)
-        # self.action_5 = BrowseEntry(self, "Action 5: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_5, None))
-        # self.action_5.pack(padx=10)
-        # self.action_6 = BrowseEntry(self, "Action 6: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_6, None))
-        # self.action_6.pack(padx=10)
-        # self.action_7 = BrowseEntry(self, "Action 7: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_7, None))
-        # self.action_7.pack(padx=10)
-        # self.action_8 = BrowseEntry(self, "Action 8: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_8, None))
-        # self.action_8.pack(padx=10)
-        # self.action_9 = BrowseEntry(self, "Action 9: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_9, None))
-        # self.action_9.pack(padx=10)
-        # self.action_0 = BrowseEntry(self, "Action 0: ",
-        #                             lambda: ActionEditorDialog(self, db_connection, self.action_0, None))
-        # self.action_0.pack(padx=10)
-
-        self.action_1 = LabeledEntry(self, "Action 1 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_1 = BrowseEntry(self, "Action 1: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_1, self.action_1.get_kept_id()))
         self.action_1.pack(padx=10)
-        self.action_2 = LabeledEntry(self, "Action 2 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_2 = BrowseEntry(self, "Action 2: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_2, self.action_2.get_kept_id()))
         self.action_2.pack(padx=10)
-        self.action_3 = LabeledEntry(self, "Action 3 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_3 = BrowseEntry(self, "Action 3: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_3, self.action_3.get_kept_id()))
         self.action_3.pack(padx=10)
-        self.action_4 = LabeledEntry(self, "Action 4 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_4 = BrowseEntry(self, "Action 4: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_4, self.action_4.get_kept_id()))
         self.action_4.pack(padx=10)
-        self.action_5 = LabeledEntry(self, "Action 5 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_5 = BrowseEntry(self, "Action 5: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_5, self.action_5.get_kept_id()))
         self.action_5.pack(padx=10)
-        self.action_6 = LabeledEntry(self, "Action 6 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_6 = BrowseEntry(self, "Action 6: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_6, self.action_6.get_kept_id()))
         self.action_6.pack(padx=10)
-        self.action_7 = LabeledEntry(self, "Action 7 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_7 = BrowseEntry(self, "Action 7: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_7, self.action_7.get_kept_id()))
         self.action_7.pack(padx=10)
-        self.action_8 = LabeledEntry(self, "Action 8 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_8 = BrowseEntry(self, "Action 8: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_8, self.action_8.get_kept_id()))
         self.action_8.pack(padx=10)
-        self.action_9 = LabeledEntry(self, "Action 9 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_9 = BrowseEntry(self, "Action 9: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_9, self.action_9.get_kept_id()))
         self.action_9.pack(padx=10)
-        self.action_0 = LabeledEntry(self, "Action 0 ID: ", is_right_justify=True, command=lambda: None)
+        self.action_0 = BrowseEntry(self, "Action 0: ",
+                                    command=lambda: ActionEditorDialog(self, db_connection,
+                                                                       self.action_0, self.action_0.get_kept_id()))
         self.action_0.pack(padx=10)
 
 

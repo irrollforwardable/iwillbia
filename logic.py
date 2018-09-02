@@ -1017,10 +1017,11 @@ class Meaning(object):
         # Set properties and actions
         if db_rows:
             word.is_consumable = True
-            self.immediate_changes.set_all_fields(db_rows[0][5], db_rows[0][6] > 0, db_rows[0][7], db_rows[0][8] > 0,
-                                                  db_rows[0][9], db_rows[0][10] > 0, db_rows[0][11], db_rows[0][12] > 0,
-                                                  db_rows[0][13], db_rows[0][14] > 0, db_rows[0][15],
-                                                  db_rows[0][16] > 0, db_rows[0][17], db_rows[0][18] > 0)
+            self.immediate_changes.set_all_fields(None, db_rows[0][5], db_rows[0][6] > 0, db_rows[0][7],
+                                                  db_rows[0][8] > 0, db_rows[0][9], db_rows[0][10] > 0, db_rows[0][11],
+                                                  db_rows[0][12] > 0, db_rows[0][13], db_rows[0][14] > 0,
+                                                  db_rows[0][15], db_rows[0][16] > 0, db_rows[0][17],
+                                                  db_rows[0][18] > 0)
             if db_rows[0][19]:
                 self.command_action_map[CMD_1] = Action(db_connection, db_rows[0][19])
             if db_rows[0][20]:

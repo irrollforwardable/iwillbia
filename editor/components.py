@@ -102,10 +102,33 @@ class LabeledEntry(tk.Frame):
         self.value.insert(0, text)
 
 
+class OptionEntry(tk.Frame):
+    def __init__(self, parent, value_id_dict, caption=None):
+        tk.Frame.__init__(self, parent)
+        self.value_id_dict = value_id_dict
+        if caption:
+            tk.Label(self, text=caption).pack(side=tk.LEFT)
+
+        if self.value_id_dict:
+            options = self.value_id_dict.keys()
+            options.sort()
+            self.lang_var = tk.StringVar(self)
+            self.lang_var.set("English")
+            self.value = tk.OptionMenu(self, self.lang_var, *options)
+            self.value.pack(side=tk.LEFT)
+
+    def get_value(self):
+        return self.lang_var.get()
+
+    def get_kept_id(self):
+        return self.value_id_dict[self.lang_var.get()]
+
+
 class BrowseEntry(tk.Frame):
     def __init__(self, parent, caption, command):
         tk.Frame.__init__(self, parent)
-        self.value_var = ""
+        self.kept_id = None  # id (most likely DB) that is not publicly shown in the field
+        self.value_var = ""  # Text that is publicly shown
         if caption:
             label = tk.Label(self, text=caption).pack(side=tk.LEFT)
         self.value = tk.Label(self, background="#FFF", relief=tk.GROOVE, anchor=tk.W, width=20)
@@ -113,12 +136,16 @@ class BrowseEntry(tk.Frame):
         self.button = tk.Button(self, text="...", command=command)
         self.button.pack(side=tk.LEFT)
 
-    def set_value(self, text):
+    def set_value(self, text, kept_id=None):
         self.value_var = text
         self.value.config(text=text)
+        self.kept_id = kept_id
 
     def get_value(self):
         return self.value_var
+
+    def get_kept_id(self):
+        return self.kept_id
 
 
 class NewFindSaveSqlButtonPanel(tk.Frame):
@@ -129,7 +156,7 @@ class NewFindSaveSqlButtonPanel(tk.Frame):
                  sql_command=None):
         tk.Frame.__init__(self, parent)
 
-        self.new_btn = tk.Button(self, text="New", width=6, command=new_command)
+        self.new_btn = tk.Button(self, text="Clear", width=6, command=new_command)
         self.open_btn = tk.Button(self, text="Find", width=6, command=find_command)
         self.save_btn = tk.Button(self, text="Save", width=6, command=save_command, state=tk.DISABLED)
         self.saveas_btn = tk.Button(self, text="Save As", width=6, command=save_as_command, state=tk.DISABLED)
@@ -143,11 +170,19 @@ class NewFindSaveSqlButtonPanel(tk.Frame):
 
 
 class OkCancelButtonPanel(tk.Frame):
-    def __init__(self, parent, ok_command, cancel_command):
+    def __init__(self, parent, ok_command, cancel_command, is_ok_enabled=True, is_cancel_enabled=True):
         tk.Frame.__init__(self, parent)
 
-        self.ok_btn = tk.Button(self, text="Ok", width=8, command=ok_command)
-        self.cancel_btn = tk.Button(self, text="Cancel", width=8, command=cancel_command)
+        ok_button_state = tk.NORMAL
+        if not is_ok_enabled:
+            ok_button_state = tk.DISABLED
+
+        cancel_button_state = tk.NORMAL
+        if not is_cancel_enabled:
+            cancel_button_state = tk.DISABLED
+
+        self.ok_btn = tk.Button(self, text="Ok", width=8, state=ok_button_state, command=ok_command)
+        self.cancel_btn = tk.Button(self, text="Cancel", width=8, state=cancel_button_state, command=cancel_command)
 
         self.ok_btn.grid(row=0, column=0, padx=15)
         self.cancel_btn.grid(row=0, column=1)

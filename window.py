@@ -18,6 +18,7 @@
 
 import tkFileDialog
 import platform
+import webbrowser
 from editor.editor import *
 
 
@@ -253,6 +254,12 @@ class Window(tk.Tk):
 
     def copy_game_to_clipboard(self):
         self.copy_to_clipboard(self.game_area.canvas.itemcget(self.game_area.text_id, "text"))
+
+    def open_online_help(self):
+        webbrowser.open("https://github.com/irrollforwardable/iwillbia/wiki")
+
+    def open_online_source_code(self):
+        webbrowser.open("https://github.com/irrollforwardable/iwillbia")
 
 
 class GameArea(tk.Frame):
@@ -520,7 +527,8 @@ class MenuBar(tk.Menu):
 
         # Help
         self.help_menu = tk.Menu(self, tearoff=0)
-        self.help_menu.add_command(label="Online Help", state="disabled")
+        self.help_menu.add_command(label="Online Help", command=self.parent.open_online_help)
+        self.help_menu.add_command(label="Source Code", command=self.parent.open_online_source_code)
         if platform.system().lower() != "darwin":  # Windows and Linux
             self.help_menu.add_separator()
             self.help_menu.add_command(label="About", command=self.parent.show_about_dialog)
