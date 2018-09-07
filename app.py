@@ -217,6 +217,19 @@ class Controller(object):
         return self.gameplays and self.gameplays[self.active_gameplay_number]\
                and self.gameplays[self.active_gameplay_number].is_running
 
+    def toggle_pause_mode(self, event):
+        if self.gameplays[self.active_gameplay_number].is_running:
+            self.gameplays[self.active_gameplay_number].is_running = False
+            self.gui.set_window_caption(file_name=self.current_file_name,
+                                        current_part=self.gameplays[self.active_gameplay_number].sequence_number,
+                                        parts_total=len(self.gameplays),
+                                        is_paused=True)
+        else:
+            self.gameplays[self.active_gameplay_number].is_running = True
+            self.gui.set_window_caption(file_name=self.current_file_name,
+                                        current_part=self.gameplays[self.active_gameplay_number].sequence_number,
+                                        parts_total=len(self.gameplays))
+
     ##################
     # Calls to logic #
     ##################

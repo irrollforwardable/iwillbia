@@ -75,6 +75,7 @@ class Window(tk.Tk):
         self.bind("<KeyRelease-Right>", self.controller.stop_player_move_right)
         self.bind("<KeyRelease-Up>", self.controller.stop_player_move_up)
         self.bind("<KeyRelease-Down>", self.controller.stop_player_move_down)
+        self.bind("<KeyPress-p>", self.controller.toggle_pause_mode)
 
     def start_gui_loop(self, interval_ms, game_loop_function):
         """
@@ -113,14 +114,23 @@ class Window(tk.Tk):
         WordChooseDialog(self, word_texts_list)
         return self.returner
 
-    def set_window_caption(self, file_name, current_part, parts_total):
+    def set_window_caption(self, file_name, current_part, parts_total, is_paused=False):
         """
         Set caption of main window, i.e. myfile.txt (3 of 5) - Appname
         :param file_name:
         :param current_part:
         :param parts_total:
+        :param is_paused: add pause indicating string if set as True
         """
-        self.title(file_name + " (" + str(current_part) + " of " + str(parts_total) + ") - " + APP_NAME)
+        pause_str = ""
+        if is_paused:
+            pause_str = "[PAUSED] "
+
+        file_str = ""
+        if file_name:
+            file_str = str(file_name)
+
+        self.title(pause_str + file_str + " (" + str(current_part) + " of " + str(parts_total) + ") - " + APP_NAME)
 
     def update_info(self, health, x_energy, y_energy, jump_power, capacity, bullets, coins, words):
         """
@@ -323,6 +333,9 @@ class InfoArea(tk.Frame):
         self.inventory_panel = InventoryPanel(self, label_color="#F0F0F0", border_color="#F0F0F0")
         self.inventory_panel.pack(expand=False, fill=tk.X, padx=5)
 
+        self.controls_panel = ControlsLegendPanel(self, label_color="#F0F0F0", border_color="#F0F0F0")
+        self.controls_panel.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
+
 
 class AttributesInfoPanel(tk.Frame):
     """
@@ -480,6 +493,18 @@ class InventoryPanel(tk.Frame):
 
     def clear_values(self):
         self.word_value.config(text="")
+
+
+class ControlsLegendPanel(tk.Frame):
+    def __init__(self, parent, label_color, border_color):
+        tk.Frame.__init__(self, parent, background=border_color)
+        tk.Label(self,
+                 text=u"\u21E6 \u21E8 - move left and right"
+                      u"\n\u21E7 - jump"
+                      u"\n\u23CE - transform into word"
+                      u"\n\u21E9 - transform into initial form"
+                      u"\nP - pause",
+                 background=label_color, justify=tk.LEFT).pack(fill=tk.X, side=tk.LEFT)
 
 
 class MenuBar(tk.Menu):
