@@ -91,7 +91,7 @@ class Window(tk.Tk):
         """
         Open file dialog and pass chosen file path to the controller function
         """
-        if self.controller.is_game_already_running():
+        if self.controller.is_game_already_running() and self.controller.current_file_name:
             if not self.ask_new_gameplay_confirm():
                 return
 
