@@ -426,11 +426,11 @@ class AttributeInfoLine(object):
                 self.potential_value.config(text=u"\u25BC " + str(potential_value), foreground=self.lower_color)
             elif potential_value > 0:
                 self.potential_value.config(text=u"\u25B2 +" + str(potential_value), foreground=self.higher_color)
-        elif potential_value and is_potential_value_absolute:
+        elif (potential_value or potential_value == 0) and is_potential_value_absolute:
             if potential_value < main_value:
-                self.potential_value.config(text=str(potential_value), foreground=self.lower_color)
+                self.potential_value.config(text=u"\u25BC " + str(potential_value), foreground=self.lower_color)
             elif potential_value > main_value:
-                self.potential_value.config(text=str(potential_value), foreground=self.higher_color)
+                self.potential_value.config(text=u"\u25B2 +" + str(potential_value), foreground=self.higher_color)
         else:
             self.potential_value.config(text="")
 
