@@ -503,7 +503,8 @@ class ControlsLegendPanel(tk.Frame):
                       u"\n\u21E7 - jump"
                       u"\n\u23CE - transform into word"
                       u"\n\u21E9 - transform into initial form"
-                      u"\nP - pause",
+                      u"\nP - pause"
+                      u"\nNumber keys - perform an action",
                  background=label_color, justify=tk.LEFT).pack(fill=tk.X, side=tk.LEFT)
 
 
