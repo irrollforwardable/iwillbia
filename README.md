@@ -45,6 +45,9 @@ Use [PyInstaller](https://www.pyinstaller.org/) for building.
 2. Make sure that `is_mac` value is passed as False to Controller object inside app.py file: `app_controller = Controller(settings, is_mac=False)`
 3. From this folder run the following command: `pyinstaller app.py --windowed --name="Iwillbia" --icon="icon.ico" --add-binary="data.db;." --add-binary="icon.ico;." --add-data="LICENSE;." --add-data="README.md;."`
 4. Built distribution is placed inside `dist` folder
+### Mac OS X
+TODO: I failed to install PyInstaller on my Mac, help with OS X build would be much appreciated.
+`pyinstaller app.py --windowed --name="Iwillbia" --icon="icon.ico" --add-binary="data.db:." --add-binary="icon.ico:." --add-data="LICENSE:." --add-data="README.md:."`
 
 ## Run
 Two options:
