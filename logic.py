@@ -731,7 +731,7 @@ class GameObject(object):
             word_text_list = [word.lines[0].directional_line.texts[word.direction] for word in self.inventory]
             chosen_word_id = self.gameplay.controller.choose_word_id_from_list(word_text_list)
             if chosen_word_id:
-                chosen_word = self.inventory[chosen_word_id[0]]
+                chosen_word = self.inventory[int(chosen_word_id[0])]
 
         # Drop the chosen word
         if chosen_word:

@@ -576,7 +576,7 @@ class SearchResultDialog(tk.Toplevel):
         self.wait_window(self)
 
     def click_ok(self):
-        selected_object = self.actual_objects[self.listbox.curselection()[0]]
+        selected_object = self.actual_objects[int(self.listbox.curselection()[0])]
         self.withdraw()
         self.update_idletasks()
         self.parent.focus_set()
