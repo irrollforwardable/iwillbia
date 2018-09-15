@@ -38,13 +38,20 @@ I would be glad if someone would help the project with:
 I cannot think of how the following would work, however this is urgently required, thus I encourage anyone to throw ideas into Wiki discussion
 - Multi-user delivery of new content to database (sequences of primary key ids would be broken if everyone is simply pushing SQL INSERT statements)
 
-## Compile
-*Coming soon*
+## Build from source
+Use [PyInstaller](https://www.pyinstaller.org/) for building.
+### Windows
+1. Navigate to the folder containing app.py module
+2. Make sure that `is_mac` value is passed as False to Controller object inside app.py file: `app_controller = Controller(settings, is_mac=False)`
+3. From this folder run the following command: `pyinstaller app.py --windowed --name="Iwillbia" --icon="icon.ico" --add-binary="data.db;." --add-binary="icon.ico;." --add-data="LICENSE;." --add-data="README.md;."`
+4. Built distribution is placed inside `dist` folder
 
 ## Run
 Two options:
 - Run binary (*coming soon*)
 - Run app.py from source (requires Python 2.7)
+  - Windows and Linux: pass `is_mac` value as False to Controller object inside app.py file: `app_controller = Controller(settings, is_mac=False)`
+  - Mac OS X: pass `is_mac` value as True to Controller object inside app.py file: `app_controller = Controller(settings, is_mac=True)`
 
 ## License
 - Source code: GNU General Public License v3.0
