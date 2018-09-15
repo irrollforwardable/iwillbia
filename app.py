@@ -25,7 +25,14 @@ from constants import *
 
 
 class Controller(object):
-    def __init__(self, _settings):
+    def __init__(self, _settings, is_mac):
+        """
+        Controller object that connects user interface and logic together.
+        :param _settings:
+        :param is_mac: True when run on Mac OS X, False when on other system
+        (Got rid of platform.system().lower() == "darwin" expression because of problems with platform module during
+        compilation via Pyinstaller)
+        """
         self.settings = _settings
 
         # Game attributes
@@ -41,7 +48,7 @@ class Controller(object):
         self.connection = sqlite3.connect("data.db")
 
         # User interface
-        self.gui = Window(self)
+        self.gui = Window(self, is_mac)
 
         # Game objects
         self.active_gameplay_number = 1
@@ -315,5 +322,5 @@ class Settings(object):
 if __name__ == '__main__':
     settings = Settings()
     settings.load_from_file("settings.txt")
-    app_controller = Controller(settings)
+    app_controller = Controller(settings, is_mac=False)
     app_controller.start()

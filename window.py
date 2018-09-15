@@ -17,7 +17,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import tkFileDialog
-import platform
 import webbrowser
 from editor.editor import *
 
@@ -32,7 +31,7 @@ def show_editor_warning():
 class Window(tk.Tk):
     """Main window of the app"""
 
-    def __init__(self, controller):
+    def __init__(self, controller, is_mac):
         self.controller = controller
         self.is_paused = False
         self.returner = None  # variable to hold returned values TODO very bad workaround
@@ -42,7 +41,7 @@ class Window(tk.Tk):
         self.title(APP_NAME)
         self.iconbitmap("icon.ico")
         self.geometry('{}x{}'.format(840, 690))
-        self.menu_bar = MenuBar(self)
+        self.menu_bar = MenuBar(self, is_mac)
         self.resizable_panel = tk.PanedWindow(orient=tk.HORIZONTAL, sashrelief=tk.RIDGE, sashwidth=5)
         self.resizable_panel.pack(fill=tk.BOTH, expand=1)
         self.info_area = InfoArea(self.resizable_panel)
@@ -512,14 +511,14 @@ class MenuBar(tk.Menu):
     """
     Menu bar with menu items
     """
-    def __init__(self, parent):
+    def __init__(self, parent, is_mac):
         self.parent = parent
 
         # Menu bar itself
         tk.Menu.__init__(self, self.parent)
 
         # OS X application menu
-        if platform.system().lower() == "darwin":
+        if is_mac:
             osxmm = tk.Menu(self, name="apple")
             osxmm.add_command(label="About " + APP_NAME)
             osxmm.add_separator()
@@ -537,7 +536,7 @@ class MenuBar(tk.Menu):
         # Edit
         self.edit_menu = tk.Menu(self, tearoff=0)
         self.edit_menu.add_command(label="Copy game to clipboard", command=self.parent.copy_game_to_clipboard)
-        if platform.system().lower() != "darwin":  # Windows and Linux
+        if not is_mac:  # Windows and Linux
             self.edit_menu.add_separator()
             self.edit_menu.add_command(label="Preferences", command=self.parent.show_settings_dialog)
         self.edit_menu.add_separator()
@@ -555,7 +554,7 @@ class MenuBar(tk.Menu):
         self.help_menu = tk.Menu(self, tearoff=0)
         self.help_menu.add_command(label="Online Help", command=self.parent.open_online_help)
         self.help_menu.add_command(label="Source Code", command=self.parent.open_online_source_code)
-        if platform.system().lower() != "darwin":  # Windows and Linux
+        if not is_mac:  # Windows and Linux
             self.help_menu.add_separator()
             self.help_menu.add_command(label="About", command=self.parent.show_about_dialog)
         self.add_cascade(label="Help", menu=self.help_menu)
