@@ -8,7 +8,7 @@ There is a lot of work ahead to make such visual representations of all the word
 
 ## Detailed game description
 Iwillbia automatically starts in totorial mode, which provides a player with the basic understanding of game mechanics.
-*Detailed description coming soon*
+Video introduction: https://www.youtube.com/watch?v=7ubqs1QtdLo
 
 ## Answering "why" questions
 ##### Why it resembles a standard windowed application and not a game with cool visual effects?
