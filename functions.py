@@ -37,9 +37,15 @@ def do_shoot(game_object, self_changes, subject_changes):
                     game_object.apply_changes(self_changes)
 
 
-def do_explode(game_object, self_changes, subject_changes):
+def do_explode_rad5(game_object, self_changes, subject_changes):
     if self_changes.can_apply_bullets_change_to_object(game_object):
         game_object.explode(radius=5, subject_changes=subject_changes)
+        game_object.apply_changes(self_changes)
+
+
+def do_explode_rad10(game_object, self_changes, subject_changes):
+    if self_changes.can_apply_bullets_change_to_object(game_object):
+        game_object.explode(radius=10, subject_changes=subject_changes)
         game_object.apply_changes(self_changes)
 
 

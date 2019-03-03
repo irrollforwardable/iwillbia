@@ -1199,13 +1199,15 @@ class Gameplay(object):
             if enemy.x <= self.player.x and (enemy.is_on_ground or enemy.jump_trick.is_active):
                 if enemy.direction == LEFT:
                     enemy.set_look_right()
-                potential_x += 1
+                if enemy.x_energy > 0:
+                    potential_x += 1
             elif enemy.x >= self.player.x + self.player.length and (enemy.is_on_ground or enemy.jump_trick.is_active):
                 if enemy.direction == RIGHT:
                     enemy.set_look_left()
-                potential_x -= 1
+                if enemy.y_energy > 0:
+                    potential_x -= 1
 
-            if enemy.is_on_ground:
+            if enemy.is_on_ground and enemy.y_energy > 0:
                 enemy.jump_trick.start()
 
             if not enemy.current_transformation or enemy.current_transformation.status == 0:
